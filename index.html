@@ -1,17 +1,2160 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aurora Dashboard</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lịch Trình Phát Sóng - BAU MASTER</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+    body { background-color: #f5f5f5; color: #333; line-height: 1.6; overflow-x: hidden; }
+    
+    .login-modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 10000; padding: 20px;
+    }
+    
+    .login-box {
+      background: white; width: 100%; max-width: 450px; padding: 40px;
+      border-radius: 20px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: slideIn 0.5s ease; position: relative; overflow: hidden;
+    }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-50px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .login-logo {
+      width: 60px; height: 60px; margin: 0 auto 20px;
+      background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+      border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; color: white; font-size: 24px;
+    }
+    
+    .login-title {
+      text-align: center; color: #1a2980; margin-bottom: 30px;
+      font-size: 28px; display: flex; align-items: center;
+      justify-content: center; gap: 15px;
+    }
+    
+    .container { max-width: 1400px; margin: 0 auto; padding: 0; display: none; }
+    
+    .header {
+      background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+      color: white; padding: 20px 30px; position: relative;
+      overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .header-content {
+      display: flex; justify-content: space-between;
+      align-items: center; position: relative; z-index: 2;
+    }
+    
+    .brand-container {
+      display: flex; align-items: center; gap: 15px;
+      justify-content: center; flex: 1;
+    }
+    
+    .brand-logo {
+      width: 60px; height: 80px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    
+    .brand-info { text-align: center; }
+    .brand-info h1 { font-size: 24px; font-weight: 700; margin-bottom: 5px; }
+    .brand-info p { font-size: 28px; opacity: 0.9; }
+    
+    .current-date {
+      font-size: 18px; font-weight: 600; margin-bottom: 5px;
+      display: flex; align-items: center; gap: 10px;
+      justify-content: center;
+    }
+    
+    .user-info {
+      font-size: 14px; opacity: 0.9; display: flex;
+      align-items: center; gap: 8px; justify-content: flex-end;
+    }
+    
+    .logout-btn {
+      background: rgba(255, 255, 255, 0.2); border: none; color: white;
+      padding: 6px 15px; border-radius: 20px; cursor: pointer;
+      font-size: 13px; transition: all 0.3s ease; margin-left: 10px;
+    }
+    
+    .logout-btn:hover { background: rgba(255, 255, 255, 0.3); }
+    
+    .summary-bar {
+      background: white; margin: 20px 30px; padding: 20px;
+      border-radius: 15px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    
+    .summary-item {
+      display: flex; align-items: center; gap: 15px; padding: 15px;
+      background: #f8f9fa; border-radius: 10px; transition: all 0.3s ease;
+    }
+    
+    .summary-item:hover {
+      transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .summary-icon {
+      width: 50px; height: 50px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; color: white;
+    }
+    
+    .icon-total { background: linear-gradient(135deg, #1a2980, #26d0ce); }
+    .icon-live { background: linear-gradient(135deg, #e74c3c, #e67e22); }
+    .icon-upcoming { background: linear-gradient(135deg, #3498db, #2ecc71); }
+    .icon-ended { background: linear-gradient(135deg, #95a5a6, #7f8c8d); }
+    
+    .summary-content h3 { font-size: 24px; font-weight: 700; color: #2d3748; margin-bottom: 5px; }
+    .summary-content p { font-size: 14px; color: #718096; }
+    
+    .tab-navigation {
+      margin: 0 30px 20px; background: white; border-radius: 15px;
+      padding: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      display: flex; gap: 10px; overflow-x: auto;
+    }
+    
+    .tab-btn {
+      padding: 12px 25px; background: #f8f9fa; border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 600; color: #718096; cursor: pointer;
+      transition: all 0.3s ease; white-space: nowrap;
+      display: flex; align-items: center; gap: 8px;
+    }
+    
+    .tab-btn.active { background: linear-gradient(135deg, #1a2980, #26d0ce); color: white; }
+    .tab-btn:hover:not(.active) { background: #e9ecef; }
+    
+    .tab-content-wrapper { display: none; margin: 0 30px 30px; animation: fadeIn 0.5s ease; }
+    .tab-content-wrapper.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    
+    .tab-layout { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
+    
+    .info-panel {
+      background: white; border-radius: 15px; padding: 25px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); height: fit-content;
+      position: sticky; top: 20px;
+    }
+    
+    .info-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-bottom: 15px; border-bottom: 2px solid #f1f3f5;
+    }
+    
+    .info-title {
+      font-size: 18px; font-weight: 700; color: #1a2980;
+      display: flex; align-items: center; gap: 10px;
+    }
+    
+    .info-content { line-height: 1.8; color: #4a5568; white-space: pre-line; font-size: 24px; }
+    
+    .background-section { margin-top: 25px; padding-top: 25px; border-top: 2px solid #f1f3f5; }
+    
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; }
+    
+    .live-card {
+      background: white; border-radius: 15px; overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); transition: all 0.3s ease;
+      border: 1px solid #e9ecef;
+    }
+    
+    .live-card:hover { transform: translateY(-5px); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15); }
+    
+    .card-header {
+      padding: 20px; border-bottom: 1px solid #e9ecef;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    
+    .card-time { font-size: 28px; font-weight: 700; color: #1a2980; display: flex; align-items: center; gap: 10px; }
+    
+    .card-status { padding: 6px 15px; border-radius: 20px; font-size: 12px; font-weight: 600; color: white; }
+    .status-live { background: linear-gradient(135deg, #e74c3c, #e67e22); animation: pulse 2s infinite; }
+    .status-upcoming { background: linear-gradient(135deg, #3498db, #2ecc71); }
+    .status-soon { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+    .status-ended { background: linear-gradient(135deg, #95a5a6, #7f8c8d); }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+    
+    .card-body { padding: 20px; }
+    .card-title { font-size: 18px; font-weight: 600; color: #2d3748; margin-bottom: 15px; line-height: 1.4; }
+    
+    .card-details { display: flex; flex-direction: column; gap: 10px; }
+    .card-detail { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #718096; }
+    .card-detail i { width: 20px; color: #1a2980; }
+    
+    .card-footer {
+      padding: 15px 20px; background: #f8f9fa; border-top: 1px solid #e9ecef;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    
+    .card-actions { display: flex; gap: 10px; }
+    
+    .action-btn {
+      padding: 8px 15px; border: none; border-radius: 8px; font-size: 13px;
+      font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+      display: flex; align-items: center; gap: 5px;
+    }
+    
+    .copy-btn { background: #1a2980; color: white; }
+    .copy-btn:hover { background: #26d0ce; }
+    .copy-btn.copied { background: #2ecc71; }
+    
+    .pic-btn { background: #3498db; color: white; }
+    .pic-btn:hover { background: #2980b9; }
+    
+    .table-container { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); }
+    .schedule-table { width: 100%; border-collapse: collapse; }
+    
+    .schedule-table thead { background: linear-gradient(135deg, #1a2980, #26d0ce); }
+    .schedule-table th {
+      padding: 18px 15px; text-align: left; color: white; font-weight: 600;
+      font-size: 14px; border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .schedule-table th:last-child { border-right: none; }
+    .schedule-table tbody tr { border-bottom: 1px solid #e9ecef; transition: all 0.3s ease; }
+    .schedule-table tbody tr:hover { background-color: #f8f9fa; }
+    .schedule-table td { padding: 16px 15px; font-size: 14px; color: #4a5568; }
+    
+    .time-cell { font-family: 'Courier New', monospace; font-weight: 600; color: #1a2980; font-size: 16px; }
+    .title-cell { max-width: 300px; word-wrap: break-word; }
+    .title-text { font-weight: 500; line-height: 1.4; }
+    .host-cell { font-weight: 600; color: #2d3748; }
+    .status-cell { min-width: 120px; }
+    
+    .status-badge {
+      display: inline-block; padding: 6px 12px; border-radius: 20px;
+      font-size: 12px; font-weight: 600; color: white;
+    }
+    
+    .countdown {
+      font-family: 'Courier New', monospace; font-size: 18px;
+      color: #e74c3c; margin-top: 5px; font-weight: bold;
+    }
+    
+    .loading {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7); z-index: 9999;
+      justify-content: center; align-items: center;
+    }
+    
+    .spinner {
+      border: 5px solid rgba(26, 41, 128, 0.1); border-radius: 50%;
+      border-top: 5px solid #1a2980; width: 60px; height: 60px;
+      animation: spin 1s linear infinite; margin: 0 auto 20px;
+    }
+    
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    
+    .modal {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7); z-index: 10001;
+      justify-content: center; align-items: center; padding: 20px;
+    }
+    
+    .modal-content {
+      background: white; border-radius: 15px; width: 100%;
+      max-width: 45vw;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); animation: modalSlideIn 0.3s ease;
+    }
+    
+    @keyframes modalSlideIn {
+      from { opacity: 0; transform: translateY(-50px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .modal-header {
+      padding: 25px; border-bottom: 1px solid #e9ecef;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    
+    .modal-title {
+      font-size: 22px; font-weight: 700; color: #1a2980;
+      display: flex; align-items: center; gap: 10px;
+    }
+    
+    .modal-close {
+      background: none; border: none; font-size: 24px;
+      color: #718096; cursor: pointer; transition: color 0.3s ease;
+    }
+    
+    .modal-close:hover { color: #e74c3c; }
+    .modal-body { padding: 25px; }
+    
+    .background-image {
+      width: 100%; max-height: 40vh; object-fit: contain;
+      border-radius: 10px; margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); background: #f5f5f5;
+      max-height: 80vh;
+    }
+    
+    .modal-footer { padding: 20px 25px; border-top: 1px solid #e9ecef; text-align: right; }
+    
+    .confirm-modal {
+      display: none; 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7); 
+      z-index: 10002;
+      justify-content: center; 
+      align-items: center;
+    }
+    
+    .confirm-content {
+      background: white; border-radius: 15px; width: 90%;
+      max-width: 400px; padding: 30px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: modalSlideIn 0.3s ease; text-align: center;
+      z-index: 10003;
+    }
+    
+    .confirm-buttons { display: flex; gap: 15px; justify-content: center; }
+    .confirm-btn { padding: 12px 25px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; min-width: 100px; }
+    .confirm-cancel { background: #f8f9fa; color: #718096; }
+    .confirm-cancel:hover { background: #e9ecef; }
+    .confirm-logout { background: #e74c3c; color: white; }
+    .confirm-logout:hover { background: #c0392b; }
+    
+    .footer { margin: 30px; padding: 20px; text-align: center; color: #718096; font-size: 14px; border-top: 1px solid #e9ecef; }
+    
+    @media (max-width: 1024px) { .tab-layout { grid-template-columns: 1fr; } .info-panel { position: static; } }
+    @media (max-width: 768px) {
+      .header-content { flex-direction: column; gap: 15px; text-align: center; }
+      .brand-container { width: 100%; justify-content: center; }
+      .header-right { width: 100%; text-align: center; }
+      .current-date, .user-info { justify-content: center; }
+      .summary-bar, .tab-navigation, .tab-content-wrapper { margin: 15px; }
+      .card-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .summary-bar { grid-template-columns: 1fr; }
+      .card-actions, .confirm-buttons { flex-direction: column; }
+      .action-btn, .confirm-btn { width: 100%; justify-content: center; }
+    }
+    /* CSS MỚI THÊM VÀO CUỐI PHẦN STYLE */
+#fixedInfoPanel {
+  order: -1; /* Đặt lên trên tabs */
+  position: sticky;
+  top: 20px;
+  z-index: 10;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+/* Layout mới cho phần chính */
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+.tab-navigation {
+  margin: 20px 0 20px !important;
+}
+
+.tab-content-wrapper {
+  margin: 0 !important;
+}
+
+/* Đảm bảo thông tin chung không bị ẩn */
+.tab-layout {
+  display: none !important; /* Ẩn layout cũ */
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  #fixedInfoPanel {
+    position: static;
+    margin: 15px !important;
+  }
+  
+  .tab-navigation,
+  .tab-content-wrapper {
+    margin: 15px !important;
+  }
+}
+
+/* CSS CHỐNG BÔI ĐEN VÀ COPY */
+.card-title, .title-text {
+  user-select: none; /* Ngăn chọn văn bản */
+  -webkit-user-select: none; /* Cho Chrome/Safari */
+  -moz-user-select: none; /* Cho Firefox */
+  -ms-user-select: none; /* Cho IE/Edge */
+  cursor: default; /* Đổi con trỏ thành mặc định */
+}
+
+/* Cho phép copy khi hover nút copy */
+.copy-btn:hover ~ .card-title,
+.copy-btn:hover ~ .title-cell .title-text {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Vẫn cho phép copy trong modal và info panel */
+.modal-body, .info-content {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Vô hiệu hóa kéo thả hình ảnh */
+img {
+  pointer-events: none; /* Ngăn kéo hình ảnh */
+  -webkit-user-drag: none; /* Ngăn kéo trên Chrome/Safari */
+  -khtml-user-drag: none; /* Ngăn kéo trên Konqueror */
+  -moz-user-drag: none; /* Ngăn kéo trên Firefox */
+  -o-user-drag: none; /* Ngăn kéo trên Opera */
+}
+
+/* Ngoại lệ: cho phép kéo trong modal background */
+#backgroundImage {
+  pointer-events: auto;
+  -webkit-user-drag: auto;
+}
+/* THÊM VÀO PHẦN CSS */
+.login-loading .animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+/* ===== HIỆU ỨNG NỔI BẬT TITLE & NOTE ===== */
+
+/* Nhấp nháy nhẹ */
+@keyframes highlightBlink {
+  0% { color: #1a2980; }
+  50% { color: #e74c3c; }
+  100% { color: #1a2980; }
+}
+
+/* Title nổi bật */
+.card-title,
+.title-text {
+  animation: highlightBlink 1.8s infinite;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+/* Hover Title */
+.card-title:hover,
+.title-text:hover {
+  transform: scale(1.05);
+  background: linear-gradient(90deg, #1a2980, #26d0ce);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+/* Note nổi bật */
+.card-detail,
+.info-content strong {
+  animation: highlightBlink 2.5s infinite;
+  font-weight: 600;
+}
+
+/* Hover Note */
+.card-detail:hover {
+  background: #fff3cd;
+  border-left: 4px solid #f39c12;
+  padding-left: 10px;
+}
+/* ===== HIỆU ỨNG RIÊNG CHO INFO CONTENT ===== */
+
+@keyframes infoBlink {
+  0% { color: #1a2980; }
+  50% { color: #e74c3c; }
+  100% { color: #1a2980; }
+}
+
+/* Các dòng đầu tiên trong infoContent (thường là NOTE) */
+#infoContent > div:first-child,
+#infoContent p:first-child {
+  animation: infoBlink 2s infinite;
+  font-weight: 700;
+}
+
+/* Các dòng có dấu ⚠ hoặc NOTE */
+#infoContent div:has(⚠),
+#infoContent div:has(NOTE),
+#infoContent div:has(LƯU Ý) {
+  animation: infoBlink 2.5s infinite;
+  font-weight: 700;
+}
+
+/* Hover nổi bật từng dòng */
+#infoContent div:hover,
+#infoContent p:hover {
+  background: #fff3cd;
+  border-left: 4px solid #f39c12;
+  padding-left: 10px;
+  transition: all 0.3s ease;
+}
+/* NOTE trong Thông tin chung */
+.note-blink {
+  animation: highlightBlink 1.8s infinite;
+  font-weight: 700;
+  display: inline-block;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Hover giống Title */
+.note-blink:hover {
+  transform: scale(1.05);
+  background: linear-gradient(90deg, #e74c3c, #f39c12);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+/* Shop Cart hiệu ứng */
+.shop-cart-value {
+  font-size: 16px;
+  font-weight: 700;
+  animation: shopCartBlink 1.5s infinite;
+  color: #1a2980;
+  cursor: pointer;
+  padding: 4px 0;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+@keyframes shopCartBlink {
+  0% { 
+    color: #1a2980;
+    transform: scale(1);
+  }
+  50% { 
+    color: #e74c3c;
+    transform: scale(1.02);
+  }
+  100% { 
+    color: #1a2980;
+    transform: scale(1);
+  }
+}
+
+.shop-cart-value:hover {
+  background: linear-gradient(90deg, #1a2980, #26d0ce);
+  color: white !important;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transform: scale(1.05);
+}
+
+/* Animation chung */
+@keyframes universalPulse {
+  0% { 
+    color: #1a2980;
+    transform: scale(1);
+  }
+  50% { 
+    color: #e74c3c;
+    transform: scale(1.01);
+  }
+  100% { 
+    color: #1a2980;
+    transform: scale(1);
+  }
+}
+
+/* Áp dụng cho tất cả */
+.card-title,
+.title-text,
+.shop-cart-value,
+.note-blink,
+.card-detail,
+.info-content strong {
+  animation: universalPulse 2s infinite;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Hover effect chung */
+.card-title:hover,
+.title-text:hover,
+.shop-cart-value:hover,
+.note-blink:hover {
+  animation: none;
+  background: linear-gradient(90deg, #1a2980, #26d0ce);
+  color: white !important;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transform: scale(1.05);
+}
+
+/* Card detail hover riêng */
+.card-detail:hover {
+  animation: none;
+  background: #fff3cd;
+  border-left: 4px solid #f39c12;
+  padding-left: 10px;
+  transform: none;
+}
+
+#autoRefreshStatus {
+  z-index: 9999;
+  animation: fadeIn 0.3s ease;
+}
+
+.current-room {
+  font-size: 22px;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  opacity: 0.9;
+  justify-content: center;
+}
+
+.room-info {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-left: 4px solid #1a2980;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.room-value {
+  animation: roomPulse 2s infinite;
+  font-weight: 700;
+}
+
+@keyframes roomPulse {
+  0% { color: #1a2980; }
+  50% { color: #26d0ce; }
+  100% { color: #1a2980; }
+}
+
+/* COUNTDOWN 30 PHÚT GIỐNG CODE CŨ */
+.countdown-soon {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: bold;
+  color: #e74c3c;
+  margin-top: 5px;
+  animation: pulse 1.5s infinite;
+}
+
+.countdown-upcoming {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: bold;
+  color: #e74c3c;
+  margin-top: 5px;
+}
+
+/* THÊM VÀO SAU .countdown-upcoming */
+.countdown {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #e74c3c;
+  margin-top: 5px;
+  font-weight: bold;
+}
+  </style>
 </head>
 <body>
-    <!-- Nội dung sẽ được tải động bằng JavaScript -->
-    <div id="app"></div>
+<!-- LOGIN MODAL -->
+<div class="login-modal" id="loginModal">
+  <div class="login-box">
+    <div class="login-logo"><i class="fas fa-tv"></i></div>
+    <h2 class="login-title">LỊCH TRÌNH PHÁT SÓNG</h2>
     
-    <script src="script.js"></script>
+    <form id="loginForm" class="space-y-4">
+      <div>
+        <label class="block mb-2 text-sm font-medium text-gray-700">
+          <i class="fas fa-users mr-2"></i>CHỌN NGƯỜI DÙNG
+        </label>
+        <select id="userSelect" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition" required>
+          <option value="">-- Chọn user --</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block mb-2 text-sm font-medium text-gray-700">
+          <i class="fas fa-user mr-2"></i>TÊN ĐĂNG NHẬP
+        </label>
+        <input type="text" id="username" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition bg-gray-50" readonly>
+      </div>
+      
+<div>
+  <label class="block mb-2 text-sm font-medium text-gray-700">
+    <i class="fas fa-lock mr-2"></i>MẬT KHẨU
+  </label>
+  <div class="relative">
+    <input type="password" id="password" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition" 
+           placeholder="Nhập mật khẩu" required>
+  </div>
+</div>
+      
+      <!-- THÊM PHẦN HIỂN THỊ ĐANG ĐĂNG NHẬP -->
+      <div class="login-loading hidden p-3 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 text-center" id="loginLoading">
+        <div class="flex items-center justify-center gap-2">
+          <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-700"></div>
+          <span>Đang đăng nhập...</span>
+        </div>
+      </div>
+      
+      <div class="login-error hidden p-3 bg-red-50 text-red-700 rounded-lg border border-red-200" id="loginError">
+        <i class="fas fa-exclamation-circle mr-2"></i>
+        <span id="errorMessage"></span>
+      </div>
+      
+      <button type="submit" class="w-full bg-gradient-to-r from-blue-900 to-teal-400 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition flex items-center justify-center gap-2" id="loginButton">
+        <i class="fas fa-sign-in-alt"></i>ĐĂNG NHẬP
+      </button>
+    </form>
+  </div>
+</div>
+  
+  <!-- MAIN CONTENT -->
+  <div class="container" id="mainContent">
+    <!-- HEADER -->
+<div class="header">
+  <div class="header-content">
+    <!-- Di chuyển phần ngày tháng và room xuống dưới -->
+    <div style="width: 300px; display: flex; flex-direction: column; gap: 5px;">
+      <div class="current-date">
+        <i class="far fa-calendar-alt"></i>
+        <span id="currentDate">--/--/----</span>
+      </div>
+      <div class="current-room">
+        <i class="fas fa-door-closed"></i>
+        <span id="roomInfo">Room: --</span>
+      </div>
+    </div>
+
+    <div class="brand-container">
+      <div class="brand-logo" id="brandLogo"></div>
+      <div class="brand-info">
+        <h1 id="brandName">Lịch Trình Phát Sóng</h1>
+        <p id="platformInfo">Tải dữ liệu...</p>
+      </div>
+    </div>
+        
+        <div class="header-right" style="width: 300px;">
+          <div class="user-info">
+            <i class="fas fa-user"></i>
+            <span id="userName">User</span>
+            <button class="logout-btn" id="logoutBtn">
+              <i class="fas fa-sign-out-alt"></i>Đăng xuất
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- SUMMARY BAR -->
+    <div class="summary-bar" id="summaryBar">
+      <div class="summary-item">
+        <div class="summary-icon icon-total"><i class="fas fa-calendar-alt"></i></div>
+        <div><h3 id="totalSchedules">0</h3><p>Tổng số lịch</p></div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-icon icon-live"><i class="fas fa-circle"></i></div>
+        <div><h3 id="liveSchedules">0</h3><p>Đang Live</p></div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-icon icon-upcoming"><i class="fas fa-clock"></i></div>
+        <div><h3 id="upcomingSchedules">0</h3><p>Sắp tới</p></div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-icon icon-ended"><i class="fas fa-check-circle"></i></div>
+        <div><h3 id="endedSchedules">0</h3><p>Đã kết thúc</p></div>
+      </div>
+    </div>
+
+    <!-- Thông báo auto refresh -->
+<div id="autoRefreshStatus" class="fixed bottom-4 left-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg text-sm hidden">
+  <i class="fas fa-sync-alt fa-spin mr-2"></i>
+  Tự động tải lại sau: <span id="refreshCountdown">30</span>s
+</div>
+    
+<!-- BAO BỌC FLEX LAYOUT -->
+<div class="info-panel-over-dashboard flex" style="gap:50px">
+  
+  <!-- THÔNG TIN CHUNG CỐ ĐỊNH (BÊN TRÁI) -->
+  <div class="info-panel" id="fixedInfoPanel" style="width: 55%; height: fit-content; position: sticky; top: 20px;">
+    <div class="background-section" id="backgroundSection" style="display: none">
+      <h3 class="text-lg font-semibold text-blue-900 mb-3 flex items-center justify-between">
+        <span><i class="fas fa-images mr-2"></i>BACKGROUND HÌNH ẢNH</span>
+        <button class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-200" onclick="openBackgroundFullscreen(document.getElementById('backgroundDisplay').src)">
+          <i class="fas fa-expand mr-1"></i> Fullscreen
+        </button>
+      </h3>
+      <div class="mb-3">
+        <img id="backgroundDisplay" src="" alt="Background" class="w-full h-[500px] object-contain rounded-lg shadow-lg">
+      </div>
+      <div id="backgroundInfo"></div>
+    </div>
+  </div>
+  
+  <!-- KHU VỰC TABS CHÍNH (BÊN PHẢI) -->
+  <div class="tabs-main-area" style="width: 55%;">
+        <div class="info-header">
+      <h2 class="info-title"><i class="fas fa-info-circle"></i>THÔNG TIN CHUNG</h2>
+      <button class="action-btn pic-btn" onclick="window.open('https://quangvd-cloud.github.io/QR-Info/', '_blank')">
+        <i class="fas fa-external-link-alt"></i> Liên Hệ PIC
+      </button>
+    </div>
+    <div class="info-content" id="infoContent">Đang tải thông tin...</div>
+    <!-- TABS NAVIGATION -->
+    <div class="tab-navigation">
+      <button class="tab-btn active" data-tab="upcoming">
+        <i class="fas fa-clock"></i>Sắp tới
+      </button>
+      <button class="tab-btn" data-tab="cards">
+        <i class="fas fa-th-large"></i>Dạng thẻ
+      </button>
+      <button class="tab-btn" data-tab="table">
+        <i class="fas fa-table"></i>Dạng bảng
+      </button>
+    </div>
+    
+    <!-- UPCOMING TAB (KHÔNG CÒN THÔNG TIN CHUNG) -->
+    <div class="tab-content-wrapper active" id="upcomingTab">
+      <div class="card-grid-unit" id="upcomingCards"></div>
+    </div>
+    
+    <!-- CARDS TAB (KHÔNG CÒN THÔNG TIN CHUNG) -->
+    <div class="tab-content-wrapper" id="cardsTab">
+      <div class="card-grid" id="cardsGrid"></div>
+    </div>
+    
+    <!-- TABLE TAB (KHÔNG CÒN THÔNG TIN CHUNG) -->
+    <div class="tab-content-wrapper" id="tableTab">
+      <div class="table-container">
+        <table class="schedule-table">
+          <thead>
+            <tr><th>#</th><th>Thời gian</th><th>Tiêu đề</th><th>Host</th><th>Trạng thái</th><th>Thao tác</th></tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <div class="loading" id="loading">
+  <div class="bg-white p-10 rounded-lg shadow-xl text-center">
+    <div class="spinner"></div>
+    <p class="text-gray-700 mt-4" id="loadingText">
+      <i class="fas fa-sync-alt fa-spin mr-2"></i>Đang tải dữ liệu...
+    </p>
+  </div>
+</div>
+  
+  <!-- BACKGROUND MODAL -->
+  <div class="modal" id="backgroundModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title"><i class="fas fa-image"></i>BACKGROUND HÌNH ẢNH</h2>
+        <button class="modal-close" id="closeBackgroundModal"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <img id="backgroundImage" class="background-image" src="" alt="Background">
+        <div id="modalBackgroundInfo"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- CONFIRM LOGOUT -->
+  <div class="confirm-modal" id="confirmLogoutModal">
+    <div class="confirm-content">
+      <div class="text-red-500 text-5xl mb-4"><i class="fas fa-sign-out-alt"></i></div>
+      <h2 class="text-xl font-bold text-gray-800 mb-3">Xác Nhận Đăng Xuất</h2>
+      <p class="text-gray-600 mb-6">Bạn có chắc chắn muốn đăng xuất?</p>
+      <input
+  type="password"
+  id="logoutPassword"
+  placeholder="Nhập mật khẩu để xác nhận"
+  class="w-full p-3 mb-4 border-2 border-gray-300 rounded-lg focus:border-red-500"
+/>
+
+<div class="text-red-500 text-sm hidden" id="logoutError">
+  Mật khẩu không đúng!
+</div>
+      <div class="confirm-buttons">
+        <button class="confirm-btn confirm-cancel" id="cancelLogout">Hủy bỏ</button>
+        <!-- <button class="confirm-btn confirm-logout" id="confirmLogout">Đăng xuất</button> -->
+        <button class="confirm-btn confirm-logout" onclick="confirmLogoutWithPassword()">
+  Đăng xuất
+</button>
+      </div>
+    </div>
+  </div>
+<script>
+// ===== BIẾN VÀ HÀM TOÀN CỤC =====
+let currentUser = null;
+let currentData = {};
+let countdownTimers = [];
+let allUsers = [];
+let autoRefreshInterval = null;
+let autoRefreshScheduleTimer = null;
+
+// ===== HÀM TIỆN ÍCH =====
+function showLoading() {
+  const loadingEl = document.getElementById('loading');
+  if (loadingEl) loadingEl.style.display = 'flex';
+}
+
+function hideLoading() {
+  const loadingEl = document.getElementById('loading');
+  if (loadingEl) loadingEl.style.display = 'none';
+}
+
+function showAlert(message, type) {
+  const alert = document.createElement('div');
+  alert.className = `fixed top-5 right-5 px-4 py-3 rounded-lg shadow-lg z-50 animate-slide-in-right ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`;
+  alert.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle mr-2"></i>${message}`;
+  document.body.appendChild(alert);
+  
+  setTimeout(() => {
+    alert.style.animation = 'slide-out-right 0.3s ease';
+    setTimeout(() => alert.remove(), 300);
+  }, 3000);
+  
+  if (!document.getElementById('alert-animations')) {
+    const style = document.createElement('style');
+    style.id = 'alert-animations';
+    style.textContent = `
+      @keyframes slide-in-right {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slide-out-right {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+      }
+      .animate-slide-in-right {
+        animation: slide-in-right 0.3s ease;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+
+function copyToClipboard(text) {
+  if (!text || text.trim() === '') {
+    showAlert('Không có nội dung để copy!', 'error');
+    return;
+  }
+  
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  
+  textarea.select();
+  textarea.setSelectionRange(0, 99999);
+  
+  try {
+    const successful = document.execCommand('copy');
+    if (successful) {
+      showAlert('Đã copy tiêu đề!', 'success');
+    } else {
+      showAlert('Không thể copy, vui lòng thử lại!', 'error');
+    }
+  } catch (err) {
+    console.error('Copy failed:', err);
+    showAlert('Lỗi khi copy: ' + err, 'error');
+  }
+  
+  document.body.removeChild(textarea);
+}
+
+function getLiveStatus(startTime, endTime) {
+  if (!startTime || !endTime) return { 
+    status: 'not_live', 
+    class: 'status-ended', 
+    text: 'CHƯA LIVE',
+    minutesLive: 0,
+    timeUntilStart: 0
+  };
+  
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+  const [startHour, startMinute] = startTime.split(':').map(Number);
+  const [endHour, endMinute] = endTime.split(':').map(Number);
+  
+  const startDate = new Date(today);
+  startDate.setHours(startHour, startMinute, 0, 0);
+  const endDate = new Date(today);
+  endDate.setHours(endHour, endMinute, 0, 0);
+  if (endDate < startDate) endDate.setDate(endDate.getDate() + 1);
+  
+  const timeDiffStart = startDate - now;
+  const timeDiffEnd = endDate - now;
+  
+  // Tính số phút đã LIVE
+  let minutesLive = 0;
+  if (timeDiffStart <= 0 && timeDiffEnd > 0) {
+    minutesLive = Math.floor((now - startDate) / (60 * 1000));
+  }
+  
+  if (timeDiffStart <= 0 && timeDiffEnd > 0) {
+    return { 
+      status: 'live', 
+      class: 'status-live', 
+      text: 'ĐANG LIVE',
+      minutesLive: minutesLive,
+      timeUntilStart: 0
+    };
+  } else if (timeDiffStart > 0 && timeDiffStart <= 30 * 60 * 1000) {
+    // "SẮP DIỄN RA": Còn 30 phút trở xuống
+    return { 
+      status: 'soon', 
+      class: 'status-soon', 
+      text: 'SẮP DIỄN RA',
+      minutesLive: 0,
+      timeUntilStart: timeDiffStart
+    };
+  } else if (timeDiffStart > 30 * 60 * 1000) {
+    // "SẮP TỚI": Còn trên 30 phút
+    return { 
+      status: 'upcoming', 
+      class: 'status-upcoming', 
+      text: 'SẮP TỚI',
+      minutesLive: 0,
+      timeUntilStart: timeDiffStart  // THÊM DÒNG NÀY
+    };
+  } else {
+    return { 
+      status: 'ended', 
+      class: 'status-ended', 
+      text: 'ĐÃ KẾT THÚC',
+      minutesLive: 0,
+      timeUntilStart: 0
+    };
+  }
+}
+function getTimestampFromTime(timeString) {
+  if (!timeString || !timeString.includes(':')) return 0;
+  
+  const [hours, minutes] = timeString.split(':').map(Number);
+  return hours * 60 + minutes;
+}
+
+// ===== HÀM TẢI DỮ LIỆU CHÍNH =====
+function loadScheduleForToday() {
+  if (!currentUser) return;
+  
+  showLoading();
+  const now = new Date();
+  const date = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}`;
+  
+  console.log("Đang tải dữ liệu cho ngày:", date);
+  
+  google.script.run
+    .withSuccessHandler(response => {
+      console.log("Nhận được response:", response);
+      if (response.success) {
+        const formattedData = {};
+        const key = `${currentUser.brand}_${currentUser.platform}`;
+        formattedData[key] = response.data;
+        
+        currentData = formattedData;
+        displayScheduleData(currentData, date);
+        updateInfoPanels();
+        updateRoomInfo(); // CẬP NHẬT THÔNG TIN ROOM
+        startAllCountdowns();
+        
+        console.log('✅ Đã tải dữ liệu. Sẽ tải lại sau 5 phút...');
+        scheduleAutoRefresh();
+      } else {
+        showAlert('Không thể tải dữ liệu: ' + (response.message || ''), 'error');
+      }
+      hideLoading();
+    })
+    .withFailureHandler(error => {
+      hideLoading();
+      console.error("Lỗi kết nối:", error);
+      showAlert('Lỗi kết nối!', 'error');
+      console.log('❌ Lỗi tải dữ liệu. Thử lại sau 5 phút...');
+      scheduleAutoRefresh();
+    })
+    .getScheduleForUser(currentUser, date);
+}
+
+function displayScheduleData(data, date) {
+  console.log("Data nhận được:", data);
+  let scheduleRows = [];
+  let total = 0, live = 0, upcoming = 0, ended = 0, notLiveYet = 0;
+  
+  // Biến để kiểm tra có phiên nào đã LIVE 45 phút chưa
+  let has45MinLive = false;
+  
+  Object.keys(data).forEach(brandKey => {
+    const brandData = data[brandKey];
+    if (brandData.results) {
+      brandData.results.forEach((result, index) => {
+        total++;
+        const rowData = result.formattedData;
+        const bgResult = brandData.backgroundData?.finalResults?.[index];
+        
+        const title = bgResult?.finalOutput || rowData[3] || '';
+        const startTime = rowData[4] || '';
+        const endTime = rowData[5] || '';
+        const liveStatus = getLiveStatus(startTime, endTime);
+        
+        switch(liveStatus.status) {
+          case 'live': live++; break;
+          case 'soon': upcoming++; break;
+          case 'upcoming': upcoming++; break;
+          case 'not_live': notLiveYet++; break;
+          case 'ended': ended++; break;
+        }
+        
+        // Nếu là phiên đang LIVE, kiểm tra xem đã 45 phút chưa
+        if (liveStatus.status === 'live') {
+          const now = new Date();
+          const today = now.toISOString().split('T')[0];
+          const [hours, minutes] = startTime.split(':').map(Number);
+          
+          const startDate = new Date(today);
+          startDate.setHours(hours, minutes, 0, 0);
+          const minutesLive = Math.floor((now - startDate) / (60 * 1000));
+          
+          if (minutesLive >= 45) {
+            has45MinLive = true;
+          }
+        }
+        
+        // Tính thời gian còn lại đến khi bắt đầu (cho countdown)
+        const now = new Date();
+        const today = now.toISOString().split('T')[0];
+        const [startHours, startMinutes] = startTime.split(':').map(Number);
+        const startDate = new Date(today);
+        startDate.setHours(startHours, startMinutes, 0, 0);
+        const timeUntilStart = startDate - now;
+        
+scheduleRows.push({
+  brand: (rowData[1] || '').toString().toUpperCase(),
+  san: (rowData[0] || '').toString().toUpperCase(),
+  date: rowData[2] || '',
+  startTime, 
+  endTime,
+  title,
+  host: rowData[7] || '',
+  pic: rowData[6] || '',
+  liveStatus: liveStatus.status,
+  liveClass: liveStatus.class,
+  liveText: liveStatus.text,
+  countdownId: `countdown-${brandKey}-${index}`, // Đây là ID quan trọng
+  startTimestamp: getTimestampFromTime(startTime),
+  minutesLive: liveStatus.minutesLive || 0,
+  timeUntilStart: timeUntilStart > 0 ? timeUntilStart : 0,
+  shouldShowCopyForSoon: false
+});
+      });
+    }
+  });
+  
+  // Sắp xếp theo giờ bắt đầu
+  scheduleRows.sort((a, b) => a.startTimestamp - b.startTimestamp);
+  
+  // Xác định chỉ 1 phiên "Sắp tới"
+  const upcomingRows = scheduleRows.filter(row => 
+    ['soon', 'upcoming', 'not_live'].includes(row.liveStatus));
+  
+  if (upcomingRows.length > 0) {
+    scheduleRows.forEach(row => {
+      if (['soon', 'upcoming'].includes(row.liveStatus)) {
+        row.liveStatus = 'not_live';
+        row.liveClass = 'status-ended';
+        row.liveText = 'CHƯA LIVE';
+      }
+    });
+    
+    const nextUpcoming = upcomingRows[0];
+    const rowIndex = scheduleRows.findIndex(r => 
+      r.startTime === nextUpcoming.startTime && 
+      r.endTime === nextUpcoming.endTime);
+    
+    if (rowIndex !== -1) {
+      if (nextUpcoming.liveStatus === 'soon') {
+        scheduleRows[rowIndex].liveStatus = 'soon';
+        scheduleRows[rowIndex].liveClass = 'status-soon';
+        scheduleRows[rowIndex].liveText = 'SẮP DIỄN RA';
+      } else {
+        scheduleRows[rowIndex].liveStatus = 'upcoming';
+        scheduleRows[rowIndex].liveClass = 'status-upcoming';
+        scheduleRows[rowIndex].liveText = 'SẮP TỚI';
+      }
+    }
+  }
+
+// CẬP NHẬT: Thêm trạng thái shouldShowCopyForSoon
+scheduleRows.forEach((row, index) => {
+  // Kiểm tra đây có phải ca LIVE đầu tiên trong ngày không
+  const isFirstLive = scheduleRows
+    .slice(0, index)
+    .every(r => r.liveStatus !== 'live');
+  
+  if (row.liveStatus === 'live') {
+    // CA LIVE: đầu tiên hoặc có LIVE 45 phút trước đó
+    row.shouldShowCopyForSoon = isFirstLive || has45MinLive;
+  } else if (row.liveStatus === 'soon' || row.liveStatus === 'upcoming') {
+    // CA SẮP TỚI: chỉ có nút copy nếu có phiên LIVE đã chạy 45 phút
+    row.shouldShowCopyForSoon = has45MinLive;
+  } else {
+    row.shouldShowCopyForSoon = false;
+  }
+});
+  
+  // Update summary
+  if (document.getElementById('totalSchedules')) {
+    document.getElementById('totalSchedules').textContent = total;
+  }
+  if (document.getElementById('liveSchedules')) {
+    document.getElementById('liveSchedules').textContent = live;
+  }
+  if (document.getElementById('upcomingSchedules')) {
+    document.getElementById('upcomingSchedules').textContent = upcoming;
+  }
+  if (document.getElementById('endedSchedules')) {
+    document.getElementById('endedSchedules').textContent = ended + notLiveYet;
+  }
+  
+  // Tạo views
+  const upcomingForTab = scheduleRows.filter(row => 
+    row.liveStatus === 'upcoming' || row.liveStatus === 'soon');
+  createUpcomingCards(upcomingForTab);
+  
+  createAllCards(scheduleRows);
+  createTable(scheduleRows);
+  
+  // Khởi động tất cả countdowns
+  startAllCountdowns();
+}
+
+function updateInfoPanels() {
+  let noteContent = '';
+  let bgImage = '';
+  let bgNote = '';
+  
+  if (currentData && Object.keys(currentData).length > 0) {
+    const firstKey = Object.keys(currentData)[0];
+    const brandData = currentData[firstKey];
+    
+    if (brandData && brandData.noteData) {
+      noteContent = brandData.noteData;
+    }
+    
+    if (brandData && brandData.generalBackgrounds && brandData.generalBackgrounds.length > 0) {
+      const bg = brandData.generalBackgrounds[0];
+      bgImage = bg.link;
+      bgNote = bg.noteBg || bg.note || '';
+      
+      const section = document.getElementById('backgroundSection');
+      const img = document.getElementById('backgroundDisplay');
+      const info = document.getElementById('backgroundInfo');
+      
+      if (section && img) {
+        section.style.display = 'block';
+        img.src = bgImage;
+        img.onerror = function() {
+          this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0BveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSIzMDAiIGZpbGw9IiNlZGVkZWQiIHJ4PSIxMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5IiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTYiPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+        };
+        if (info) {
+          info.innerHTML = bgNote ? `<div class="mt-2"><i class="fas fa-sticky-note mr-2 text-blue-900"></i><strong>Ghi chú:</strong> ${bgNote}</div>` : '';
+        }
+      }
+    } else {
+      const section = document.getElementById('backgroundSection');
+      if (section) section.style.display = 'none';
+    }
+  } else {
+    const section = document.getElementById('backgroundSection');
+    if (section) section.style.display = 'none';
+  }
+  
+  const infoContent = document.getElementById('infoContent');
+  if (infoContent) {
+    if (typeof noteContent === 'string' && noteContent.trim() !== '') {
+      infoContent.innerHTML = `<span class="note-blink">${noteContent}</span>`;
+    } else {
+      infoContent.innerHTML = '<em>Không có thông tin ghi chú</em>';
+    }
+  }
+}
+
+// ===== HÀM TẠO CARD VÀ TABLE =====
+function createUpcomingCards(rows) {
+  const container = document.getElementById('upcomingCards');
+  if (!container) return;
+  
+  container.innerHTML = rows.length ? '' : '<div class="col-span-full text-center py-10 text-gray-500"><i class="fas fa-calendar-times fa-3x mb-4"></i><p>Không có lịch sắp tới</p></div>';
+  rows.forEach((row, i) => container.appendChild(createCardElement(row, i)));
+}
+
+function createAllCards(rows) {
+  const container = document.getElementById('cardsGrid');
+  if (!container) return;
+  
+  container.innerHTML = rows.length ? '' : '<div class="col-span-full text-center py-10 text-gray-500"><i class="fas fa-calendar-times fa-3x mb-4"></i><p>Không có lịch trình</p></div>';
+  rows.forEach((row, i) => container.appendChild(createCardElement(row, i)));
+}
+function createCardElement(row, index) {
+  const card = document.createElement('div');
+  card.className = 'live-card';
+  
+  const shopCart = currentData && Object.keys(currentData).length > 0 ? 
+    currentData[Object.keys(currentData)[0]].shopCartInfo : '';
+  
+  // LOGIC MỚI: Hiển thị nút copy dựa trên điều kiện
+  let showCopyButton = false;
+  
+  if (row.liveStatus === 'live') {
+    // Phiên đang LIVE: luôn có nút copy
+    showCopyButton = true;
+  } else if (row.liveStatus === 'soon' || row.liveStatus === 'upcoming') {
+    // Phiên Sắp tới: chỉ có nút copy nếu có phiên LIVE đã chạy 45 phút
+    showCopyButton = row.shouldShowCopyForSoon || false;
+  }
+  
+  // Tạo countdown cho "SẮP DIỄN RA" và "SẮP TỚI"
+  // SỬA: LUÔN HIỂN THỊ COUNTDOWN (không phụ thuộc vào điều kiện nào khác)
+  let countdownHTML = '';
+  if (row.liveStatus === 'soon' || row.liveStatus === 'upcoming') {
+    countdownHTML = `<div class="countdown" id="${row.countdownId}"></div>`;
+  }
+  
+  card.innerHTML = `
+    <div class="card-header">
+      <div class="card-time">${row.startTime} - ${row.endTime}</div>
+      <div class="card-status ${row.liveClass}">
+        ${row.liveStatus === 'live' ? '<i class="fas fa-circle fa-pulse"></i>' : 
+          row.liveStatus === 'soon' ? '<i class="fas fa-clock"></i>' :
+          row.liveStatus === 'upcoming' ? '<i class="far fa-clock"></i>' :
+          row.liveStatus === 'not_live' ? '<i class="far fa-clock"></i>' :
+          '<i class="far fa-check-circle"></i>'} ${row.liveText}
+        ${row.liveStatus === 'live' ? `<span style="font-size: 10px; margin-left: 5px;">(${row.minutesLive} phút)</span>` : ''}
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="card-title">${row.title || 'Không có tiêu đề'}</div>
+      ${shopCart ? `
+  <div class="shop-cart mt-4 p-3 bg-gradient-to-r from-blue-50 to-teal-50 border-l-4 border-blue-900 rounded-lg shadow-sm">
+    <div class="flex items-center gap-2 text-blue-900 mb-2">
+      <i class="fas fa-shopping-cart text-blue-700"></i>
+      <span class="font-bold text-blue-900">SHOP CART:</span>
+    </div>
+    <div class="shop-cart-value">${shopCart}</div>
+  </div>
+` : ''}
+    </div>
+    <div class="card-footer">
+      ${countdownHTML}
+      <div class="card-actions">
+        ${showCopyButton ? 
+          `<button class="action-btn copy-btn" data-title="${row.title}">
+            <i class="fas fa-copy"></i> Copy
+          </button>` : 
+          ''
+        }
+      </div>
+    </div>
+  `;
+  
+  if (showCopyButton) {
+    const copyBtn = card.querySelector('.copy-btn');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function() {
+        copyToClipboard(this.dataset.title);
+        const btn = this;
+        btn.innerHTML = '<i class="fas fa-check"></i> Đã Copy';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+          btn.classList.remove('copied');
+        }, 1500);
+      });
+    }
+  }
+  
+  return card;
+}
+
+
+function createTable(rows) {
+  const tbody = document.getElementById('tableBody');
+  if (!tbody) return;
+  
+  tbody.innerHTML = rows.length ? '' : '<tr><td colspan="6" class="text-center py-10 text-gray-500"><i class="fas fa-calendar-times fa-2x mb-2"></i><p>Không có lịch trình</p></td></tr>';
+  
+  const shopCart = currentData && Object.keys(currentData).length > 0 ? 
+    currentData[Object.keys(currentData)[0]].shopCartInfo : '';
+  
+  rows.forEach((row, i) => {
+    // LOGIC MỚI: Hiển thị nút copy dựa trên điều kiện
+    let showCopyButton = false;
+    
+    if (row.liveStatus === 'live') {
+      // Phiên đang LIVE: luôn có nút copy
+      showCopyButton = true;
+    } else if (row.liveStatus === 'soon' || row.liveStatus === 'upcoming') {
+      // Phiên Sắp tới: chỉ có nút copy nếu có phiên LIVE đã chạy 45 phút
+      showCopyButton = row.shouldShowCopyForSoon || false;
+    }
+    
+    // SỬA: LUÔN HIỂN THỊ COUNTDOWN (không phụ thuộc vào điều kiện nào khác)
+    let countdownHTML = '';
+    if (row.liveStatus === 'soon' || row.liveStatus === 'upcoming') {
+      countdownHTML = `<div class="countdown" id="table-${row.countdownId}"></div>`;
+    }
+    
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td class="time-cell">${row.startTime} - ${row.endTime}</td>
+      <td class="title-cell">
+        <div class="title-text">${row.title || 'Không có tiêu đề'}</div>
+${shopCart ? `
+  <div class="shop-cart mt-3 p-3 bg-gradient-to-r from-blue-50 to-teal-50 border-l-4 border-blue-900 rounded">
+    <div class="flex items-center gap-2 text-blue-900 mb-1">
+      <i class="fas fa-shopping-cart text-sm"></i>
+      <span class="font-bold text-sm">SHOP CART:</span>
+    </div>
+    <div class="shop-cart-value text-sm">${shopCart}</div>
+  </div>
+` : ''}
+      </td>
+      <td class="host-cell">${row.host || 'Chưa có'}</td>
+      <td class="status-cell">
+        <div class="status-badge ${row.liveClass}">
+          ${row.liveStatus === 'live' ? '<i class="fas fa-circle fa-pulse"></i>' : 
+            row.liveStatus === 'soon' ? '<i class="fas fa-clock"></i>' :
+            row.liveStatus === 'upcoming' ? '<i class="far fa-clock"></i>' :
+            row.liveStatus === 'not_live' ? '<i class="far fa-clock"></i>' :
+            '<i class="far fa-check-circle"></i>'} ${row.liveText}
+          ${row.liveStatus === 'live' ? `<span style="font-size: 9px; margin-left: 3px;">(${row.minutesLive} phút)</span>` : ''}
+        </div>
+        ${countdownHTML}
+      </td>
+      <td>
+        <div class="flex gap-2">
+          ${showCopyButton ? 
+            `<button class="action-btn copy-btn" data-title="${row.title}">
+              <i class="fas fa-copy"></i>
+            </button>` : 
+            ''
+          }
+        </div>
+      </td>
+    `;
+    
+    if (showCopyButton) {
+      const copyBtn = tr.querySelector('.copy-btn');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', function() {
+          copyToClipboard(this.dataset.title);
+        });
+      }
+    }
+    
+    tbody.appendChild(tr);
+  });
+}
+// ===== COUNTDOWN TIMERS =====
+function startAllCountdowns() {
+  clearAllCountdowns();
+  
+  // SỬA: Lấy tất cả phần tử có class .countdown (giống code cũ)
+  document.querySelectorAll('.countdown').forEach(timer => {
+    const card = timer.closest('.live-card, tr');
+    if (card) {
+      const timeCell = card.querySelector('.card-time, .time-cell');
+      if (timeCell) {
+        const startTime = timeCell.textContent.split(' - ')[0];
+        if (startTime && startTime.includes(':')) {
+          startCountdownTimer(timer.id, startTime);
+        }
+      }
+    }
+  });
+}
+
+function startCountdownTimer(id, startTime) {
+  const timer = document.getElementById(id);
+  if (!timer) return;
+  
+  const update = () => {
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const [hours, minutes] = startTime.split(':').map(Number);
+    const startDate = new Date(today);
+    startDate.setHours(hours, minutes, 0, 0);
+    const timeDiff = startDate - now;
+    
+    if (timeDiff <= 0) {
+      timer.textContent = '';
+      return;
+    }
+    
+    // HIỂN THỊ ĐẾM NGƯỢC KHI CÒN 30 PHÚT TRỞ XUỐNG (giống code cũ)
+    if (timeDiff <= 30 * 60 * 1000) {
+      const mins = Math.floor(timeDiff / (60 * 1000));
+      const secs = Math.floor((timeDiff % (60 * 1000)) / 1000);
+      // THAY ĐỔI: Giống code cũ - "Còn MM:SS" thay vì "Bắt đầu sau: MM:SS"
+      timer.textContent = `Còn ${mins}:${secs.toString().padStart(2,'0')}`;
+    } else {
+      timer.textContent = '';
+    }
+  };
+  
+  update();
+  const intervalId = setInterval(update, 1000);
+  countdownTimers.push(intervalId);
+}
+
+function clearAllCountdowns() {
+  countdownTimers.forEach(clearInterval);
+  countdownTimers = [];
+}
+
+// ===== AUTO REFRESH =====
+function scheduleAutoRefresh() {
+  if (autoRefreshScheduleTimer) {
+    clearTimeout(autoRefreshScheduleTimer);
+  }
+  
+  showRefreshCountdown(300); // Đổi từ 30 thành 300 (5 phút)
+  
+  autoRefreshScheduleTimer = setTimeout(function() {
+    console.log('🔄 Tự động tải lại dữ liệu... ' + new Date().toLocaleTimeString());
+    hideRefreshCountdown();
+    loadScheduleForToday();
+  }, 300000); // Đổi từ 30000 (30s) thành 300000 (300s = 5 phút)
+  
+  console.log(`⏰ Đã lên lịch tải lại sau 5 phút (${new Date().toLocaleTimeString()})`);
+}
+
+function showRefreshCountdown(seconds) {
+  const statusEl = document.getElementById('autoRefreshStatus');
+  const countdownEl = document.getElementById('refreshCountdown');
+  
+  if (statusEl && countdownEl) {
+    statusEl.classList.remove('hidden');
+    countdownEl.textContent = seconds;
+    
+    let remaining = seconds;
+    const countdownInterval = setInterval(() => {
+      remaining--;
+      if (remaining <= 0) {
+        clearInterval(countdownInterval);
+        countdownEl.textContent = '0';
+      } else {
+        countdownEl.textContent = remaining;
+      }
+    }, 1000);
+    
+    window.refreshCountdownInterval = countdownInterval;
+  }
+}
+
+function hideRefreshCountdown() {
+  const statusEl = document.getElementById('autoRefreshStatus');
+  if (statusEl) {
+    statusEl.classList.add('hidden');
+  }
+  
+  if (window.refreshCountdownInterval) {
+    clearInterval(window.refreshCountdownInterval);
+  }
+}
+
+function stopAutoRefreshSchedule() {
+  if (autoRefreshScheduleTimer) {
+    clearTimeout(autoRefreshScheduleTimer);
+    autoRefreshScheduleTimer = null;
+  }
+  hideRefreshCountdown();
+  console.log('⏹️ Đã dừng lịch tải lại tự động');
+}
+
+// ===== LOGOUT =====
+function logoutUser() {
+  const loadingText = document.getElementById('loadingText');
+  if (loadingText) {
+    loadingText.innerHTML = '<i class="fas fa-sign-out-alt fa-spin mr-2"></i>Đang đăng xuất...';
+  }
+  
+  const loading = document.getElementById('loading');
+  if (loading) {
+    loading.style.display = 'flex';
+  }
+  
+  if (typeof showAlert === 'function') {
+    showAlert(`Đã đăng xuất tài khoản ${currentUser?.username || ''}!`, 'success');
+  }
+  
+  stopAutoRefreshSchedule();
+  
+  currentUser = null;
+  localStorage.removeItem('liveschedule_user');
+  
+  clearAllCountdowns();
+  
+  document.getElementById('confirmLogoutModal').style.display = 'none';
+  
+  if (document.getElementById('username')) {
+    document.getElementById('username').value = '';
+  }
+  if (document.getElementById('password')) {
+    document.getElementById('password').value = '';
+  }
+  if (document.getElementById('userSelect')) {
+    document.getElementById('userSelect').value = '';
+  }
+  
+  setTimeout(() => {
+    if (loadingText) {
+      loadingText.innerHTML = '<i class="fas fa-sync-alt fa-spin mr-2"></i>Đang tải dữ liệu...';
+    }
+    
+    if (loading) {
+      loading.style.display = 'none';
+    }
+    
+    document.getElementById('loginModal').style.display = 'flex';
+    document.getElementById('mainContent').style.display = 'none';
+  }, 1000);
+}
+
+function confirmLogoutWithPassword() {
+  const inputPass = document.getElementById('logoutPassword').value;
+  const errorBox = document.getElementById('logoutError');
+  const realPass = currentUser?.password;
+
+  if (!inputPass || inputPass !== realPass) {
+    errorBox.classList.remove('hidden');
+    return;
+  }
+
+  errorBox.classList.add('hidden');
+  document.getElementById('logoutPassword').value = '';
+  logoutUser();
+}
+
+// ===== ĐĂNG NHẬP =====
+function simpleLogin(username, password) {
+  const loginLoading = document.getElementById('loginLoading');
+  const loginButton = document.getElementById('loginButton');
+  const loginError = document.getElementById('loginError');
+  
+  if (loginLoading) loginLoading.classList.remove('hidden');
+  if (loginButton) loginButton.disabled = true;
+  if (loginError) loginError.classList.add('hidden');
+  
+  // Gọi server với cả username và password
+  google.script.run
+    .withSuccessHandler(response => {
+      if (loginLoading) loginLoading.classList.add('hidden');
+      if (loginButton) loginButton.disabled = false;
+      
+      if (response.success) {
+        currentUser = response.user;
+        localStorage.setItem('liveschedule_user', JSON.stringify(currentUser));
+        showMainContent();
+        loadScheduleForToday();
+        showAlert(`Chào mừng ${currentUser.username}!`, 'success');
+      } else {
+        showLoginError(response.message);
+      }
+    })
+    .withFailureHandler(error => {
+      if (loginLoading) loginLoading.classList.add('hidden');
+      if (loginButton) loginButton.disabled = false;
+      showLoginError('Lỗi kết nối! Vui lòng thử lại.');
+    })
+    .simpleLogin(username, password); // Truyền cả password
+}
+
+function showLoginError(message) {
+  const errorMessage = document.getElementById('errorMessage');
+  const loginError = document.getElementById('loginError');
+  
+  if (errorMessage && loginError) {
+    errorMessage.textContent = message;
+    loginError.classList.remove('hidden');
+  }
+}
+
+function hideLoginError() {
+  const loginError = document.getElementById('loginError');
+  if (loginError) loginError.classList.add('hidden');
+}
+
+function showMainContent() {
+  const loginModal = document.getElementById('loginModal');
+  const mainContent = document.getElementById('mainContent');
+  
+  if (loginModal) loginModal.style.display = 'none';
+  if (mainContent) mainContent.style.display = 'block';
+  
+  if (document.getElementById('userName')) {
+    document.getElementById('userName').textContent = currentUser.username;
+  }
+  if (document.getElementById('brandName')) {
+    document.getElementById('brandName').textContent = currentUser.brandName || currentUser.brand;
+  }
+  if (document.getElementById('platformInfo')) {
+    document.getElementById('platformInfo').textContent = `${currentUser.brand.toUpperCase()} ${currentUser.platform.toUpperCase()}`;
+  }
+  
+  const brandLogo = document.getElementById('brandLogo');
+  if (brandLogo) {
+    if (currentUser.img) {
+      brandLogo.innerHTML = `<img src="${currentUser.img}" alt="Logo" class="w-full h-full object-contain p-1 rounded-lg" onerror="handleLogoError(this)">`;
+    } else {
+      brandLogo.innerHTML = '<div class="w-full h-full bg-gradient-to-br from-blue-900 to-teal-400 rounded-lg flex items-center justify-center text-white text-2xl"><i class="fas fa-tv"></i></div>';
+    }
+  }
+  
+  const now = new Date();
+  if (document.getElementById('currentDate')) {
+    document.getElementById('currentDate').textContent = 
+      `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+  }
+}
+
+function handleLogoError(imgElement) {
+  if (imgElement && imgElement.parentElement) {
+    imgElement.parentElement.innerHTML = '<div class="w-full h-full bg-gradient-to-br from-blue-900 to-teal-400 rounded-lg flex items-center justify-center text-white text-2xl"><i class="fas fa-tv"></i></div>';
+  }
+}
+
+// ===== DOM READY =====
+document.addEventListener('DOMContentLoaded', function() {
+  // Load users list
+  function loadUsersList() {
+    google.script.run
+      .withSuccessHandler(response => {
+        if (response.success) {
+          allUsers = response.users;
+          populateUserSelect();
+        }
+      })
+      .getUsersList();
+  }
+  
+  function populateUserSelect() {
+    const userSelect = document.getElementById('userSelect');
+    if (!userSelect) return;
+    
+    userSelect.innerHTML = '<option value="">-- Chọn user --</option>';
+    allUsers.forEach(user => {
+      const option = document.createElement('option');
+      option.value = user.id;
+      option.textContent = `${user.username} (${user.brand} ${user.platform})`;
+      userSelect.appendChild(option);
+    });
+  }
+  
+  // Tab switching
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      try {
+        document.querySelectorAll('.tab-btn').forEach(b => {
+          b.classList.remove('active');
+        });
+        
+        document.querySelectorAll('.tab-content-wrapper').forEach(c => {
+          c.classList.remove('active');
+        });
+        
+        this.classList.add('active');
+        const tabId = this.getAttribute('data-tab');
+        const tabContent = document.getElementById(tabId + 'Tab');
+        if (tabContent) {
+          tabContent.classList.add('active');
+        }
+      } catch (error) {
+        console.error('Lỗi khi chuyển tab:', error);
+      }
+    });
+  });
+  
+  // Event Listeners
+  const userSelect = document.getElementById('userSelect');
+  const usernameInput = document.getElementById('username');
+  const passwordInput = document.getElementById('password');
+  const loginForm = document.getElementById('loginForm');
+  
+if (userSelect) {
+  userSelect.addEventListener('change', function() {
+    const user = allUsers.find(u => u.id == this.value);
+    if (user) {
+      usernameInput.value = user.username;
+      // KHÔNG tự động điền mật khẩu nữa - để người dùng tự nhập
+      passwordInput.value = '';
+      passwordInput.focus(); // Tự động focus vào ô mật khẩu
+    }
+  });
+}
+
+if (loginForm) {
+  loginForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const selectedUser = userSelect.value;
+    const usernameValue = usernameInput.value.trim();
+    const passwordValue = passwordInput.value.trim();
+    
+    if (!selectedUser) {
+      showLoginError('Vui lòng chọn user!');
+      return;
+    }
+    
+    if (!passwordValue) {
+      showLoginError('Vui lòng nhập mật khẩu!');
+      return;
+    }
+    
+    // Tìm user trong danh sách và kiểm tra mật khẩu
+    const user = allUsers.find(u => u.id == selectedUser);
+    if (!user) {
+      showLoginError('User không tồn tại!');
+      return;
+    }
+    
+    // KIỂM TRA MẬT KHẨU TRƯỚC KHI GỌI SERVER
+    if (user.password !== passwordValue) {
+      showLoginError('Mật khẩu không đúng!');
+      return;
+    }
+    
+    // Nếu mật khẩu đúng, thực hiện đăng nhập
+    hideLoginError();
+    simpleLogin(usernameValue, passwordValue); // Truyền cả username và password
+  });
+}
+  
+  if (loginForm) {
+    loginForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (!userSelect.value) {
+        showLoginError('Vui lòng chọn user!');
+        return;
+      }
+      hideLoginError();
+      simpleLogin(usernameInput.value.trim());
+    });
+  }
+  
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      document.getElementById('confirmLogoutModal').style.display = 'flex';
+    });
+  }
+  
+  const cancelLogoutBtn = document.getElementById('cancelLogout');
+  if (cancelLogoutBtn) {
+    cancelLogoutBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      document.getElementById('confirmLogoutModal').style.display = 'none';
+    });
+  }
+  
+  const closeBackgroundModal = document.getElementById('closeBackgroundModal');
+  if (closeBackgroundModal) {
+    closeBackgroundModal.addEventListener('click', function() {
+      const backgroundModal = document.getElementById('backgroundModal');
+      if (backgroundModal) backgroundModal.style.display = 'none';
+    });
+  }
+  
+  // Check saved login
+  const savedUser = localStorage.getItem('liveschedule_user');
+  if (savedUser) {
+    try {
+      currentUser = JSON.parse(savedUser);
+      showMainContent();
+      loadScheduleForToday();
+    } catch (e) {
+      localStorage.removeItem('liveschedule_user');
+      document.getElementById('loginModal').style.display = 'flex';
+    }
+  } else {
+    document.getElementById('loginModal').style.display = 'flex';
+  }
+  
+  // Load users
+  loadUsersList();
+});
+
+// Hàm phóng to background
+function openBackgroundFullscreen(imageUrl) {
+  const modal = document.getElementById('backgroundModal');
+  const img = document.getElementById('backgroundImage');
+  
+  if (!img || !modal) return;
+  
+  img.src = imageUrl;
+  
+  modal.style.display = 'flex';
+}
+
+// Thêm vào cuối script trong Html.txt
+function updateLiveMinutes() {
+  const now = new Date();
+  
+  // Cập nhật thời gian cho các phiên đang LIVE
+  document.querySelectorAll('.live-card, tr').forEach(element => {
+    const statusBadge = element.querySelector('.card-status, .status-badge');
+    if (statusBadge && statusBadge.textContent.includes('ĐANG LIVE')) {
+      const timeCell = element.querySelector('.card-time, .time-cell');
+      if (timeCell) {
+        const startTime = timeCell.textContent.split(' - ')[0];
+        if (startTime && startTime.includes(':')) {
+          const [hours, minutes] = startTime.split(':').map(Number);
+          const startDate = new Date();
+          startDate.setHours(hours, minutes, 0, 0);
+          const minutesLive = Math.floor((now - startDate) / (60 * 1000));
+          
+          // Cập nhật hiển thị thời gian
+          const minutesSpan = statusBadge.querySelector('span');
+          if (minutesSpan) {
+            minutesSpan.textContent = `(${minutesLive} phút)`;
+          }
+          
+          // Nếu đã LIVE 45 phút, hiển thị nút copy cho phiên "SẮP DIỄN RA"
+          if (minutesLive >= 45) {
+            const soonCards = document.querySelectorAll('.status-soon, .status-upcoming');
+            soonCards.forEach(soonCard => {
+              const copyBtn = soonCard.closest('.live-card, tr')?.querySelector('.copy-btn');
+              if (copyBtn) {
+                copyBtn.style.display = 'flex';
+              }
+            });
+          }
+        }
+      }
+    }
+  });
+}
+
+// Chạy cập nhật mỗi phút
+setInterval(updateLiveMinutes, 60000);
+
+// Thêm hàm để lấy room từ dữ liệu
+function getRoomFromData(data) {
+  if (!data || Object.keys(data).length === 0) return '--';
+  
+  const firstKey = Object.keys(data)[0];
+  const brandData = data[firstKey];
+  
+  if (brandData.resultsWithHostCode && brandData.resultsWithHostCode.length > 0) {
+    // Lấy room từ phiên đầu tiên (hoặc có thể lấy từ phiên hiện tại)
+    const firstSchedule = brandData.resultsWithHostCode[0];
+    return firstSchedule.room || '--';
+  }
+  
+  return '--';
+}
+
+// Hàm cập nhật thông tin Room theo phiên đang/sắp LIVE
+function updateRoomInfo() {
+  const roomInfo = document.getElementById('roomInfo');
+  if (!roomInfo || !currentData || Object.keys(currentData).length === 0) return;
+  
+  const firstKey = Object.keys(currentData)[0];
+  const brandData = currentData[firstKey];
+  
+  // Kiểm tra các phiên đang LIVE
+  let currentRoom = '--';
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+  
+  // Tìm phiên đang LIVE đầu tiên
+  if (brandData.resultsWithHostCode && brandData.resultsWithHostCode.length > 0) {
+    for (const schedule of brandData.resultsWithHostCode) {
+      const startTime = schedule.startTime || '';
+      const endTime = schedule.endTime || '';
+      
+      if (startTime && endTime && startTime.includes(':') && endTime.includes(':')) {
+        const [startHour, startMinute] = startTime.split(':').map(Number);
+        const [endHour, endMinute] = endTime.split(':').map(Number);
+        
+        const startDate = new Date(today);
+        startDate.setHours(startHour, startMinute, 0, 0);
+        const endDate = new Date(today);
+        endDate.setHours(endHour, endMinute, 0, 0);
+        if (endDate < startDate) endDate.setDate(endDate.getDate() + 1);
+        
+        // Kiểm tra xem hiện tại có nằm trong khoảng thời gian không
+        if (now >= startDate && now <= endDate) {
+          currentRoom = schedule.room || '--';
+          break; // Dừng ngay khi tìm thấy phiên đang LIVE
+        }
+      }
+    }
+  }
+  
+  // Nếu không có phiên đang LIVE, tìm phiên SẮP TỚI gần nhất
+  if (currentRoom === '--' && brandData.resultsWithHostCode && brandData.resultsWithHostCode.length > 0) {
+    let upcomingRoom = '--';
+    let minTimeDiff = Infinity;
+    
+    for (const schedule of brandData.resultsWithHostCode) {
+      const startTime = schedule.startTime || '';
+      
+      if (startTime && startTime.includes(':')) {
+        const [startHour, startMinute] = startTime.split(':').map(Number);
+        const startDate = new Date(today);
+        startDate.setHours(startHour, startMinute, 0, 0);
+        
+        // Tính thời gian còn lại đến khi bắt đầu
+        const timeDiff = startDate - now;
+        
+        // Chỉ lấy phiên chưa bắt đầu và gần nhất (trong vòng 4 tiếng)
+        if (timeDiff > 0 && timeDiff <= 4 * 60 * 60 * 1000 && timeDiff < minTimeDiff) {
+          minTimeDiff = timeDiff;
+          upcomingRoom = schedule.room || '--';
+        }
+      }
+    }
+    
+    if (upcomingRoom !== '--') {
+      currentRoom = upcomingRoom;
+    }
+  }
+  
+  roomInfo.textContent = `Room: ${currentRoom}`;
+}
+
+// Tự động cập nhật Room mỗi phút
+setInterval(updateRoomInfo, 60000);
+
+// Cập nhật Room khi chuyển tab hoặc tải dữ liệu mới
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden) {
+    updateRoomInfo();
+  }
+});
+
+// Hàm tự động cập nhật thời gian LIVE và kích hoạt nút copy
+function autoUpdateLiveMinutes() {
+  if (!currentData || Object.keys(currentData).length === 0) return;
+  
+  const now = new Date();
+  let has45MinLive = false;
+  
+  // Cập nhật thời gian cho các phiên đang LIVE
+  document.querySelectorAll('.live-card, .schedule-table tbody tr').forEach(element => {
+    const statusElement = element.querySelector('.card-status, .status-badge');
+    
+    // Kiểm tra xem có phải phiên LIVE không
+    if (statusElement && statusElement.textContent.includes('ĐANG LIVE')) {
+      const timeCell = element.querySelector('.card-time, .time-cell');
+      if (timeCell) {
+        const startTime = timeCell.textContent.split(' - ')[0];
+        if (startTime && startTime.includes(':')) {
+          const [hours, minutes] = startTime.split(':').map(Number);
+          const today = now.toISOString().split('T')[0];
+          const startDate = new Date(today);
+          startDate.setHours(hours, minutes, 0, 0);
+          
+          const minutesLive = Math.floor((now - startDate) / (60 * 1000));
+          
+          // Cập nhật hiển thị thời gian
+          const minutesSpan = statusElement.querySelector('span');
+          if (minutesSpan) {
+            minutesSpan.textContent = `(${minutesLive} phút)`;
+          }
+          
+          // Kiểm tra nếu đã LIVE 45 phút
+          if (minutesLive >= 45) {
+            has45MinLive = true;
+          }
+        }
+      }
+    }
+  });
+  
+  // Nếu có phiên đã LIVE 45 phút, kích hoạt nút copy cho phiên Sắp tới
+  if (has45MinLive) {
+    enableCopyForUpcomingSessions();
+  }
+}
+
+// Hàm kích hoạt nút copy cho phiên Sắp tới
+function enableCopyForUpcomingSessions() {
+  document.querySelectorAll('.status-soon, .status-upcoming').forEach(statusElement => {
+    const cardOrRow = statusElement.closest('.live-card, tr');
+    if (cardOrRow) {
+      let copyBtn = cardOrRow.querySelector('.copy-btn');
+      
+      // Nếu chưa có nút copy, tạo mới
+      if (!copyBtn) {
+        const title = cardOrRow.querySelector('.card-title, .title-text')?.textContent || '';
+        if (cardOrRow.classList.contains('live-card')) {
+          // Card view
+          const actionsDiv = cardOrRow.querySelector('.card-actions');
+          if (actionsDiv) {
+            copyBtn = document.createElement('button');
+            copyBtn.className = 'action-btn copy-btn';
+            copyBtn.setAttribute('data-title', title);
+            copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+            copyBtn.addEventListener('click', function() {
+              copyToClipboard(this.dataset.title);
+              const btn = this;
+              btn.innerHTML = '<i class="fas fa-check"></i> Đã Copy';
+              btn.classList.add('copied');
+              setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+                btn.classList.remove('copied');
+              }, 1500);
+            });
+            actionsDiv.appendChild(copyBtn);
+          }
+        } else {
+          // Table view
+          const tdActions = cardOrRow.querySelector('td:last-child .flex');
+          if (tdActions) {
+            copyBtn = document.createElement('button');
+            copyBtn.className = 'action-btn copy-btn';
+            copyBtn.setAttribute('data-title', title);
+            copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+            copyBtn.addEventListener('click', function() {
+              copyToClipboard(this.dataset.title);
+            });
+            tdActions.appendChild(copyBtn);
+          }
+        }
+      }
+      
+      // Hiển thị nút copy nếu đã có
+      if (copyBtn) {
+        copyBtn.style.display = 'flex';
+      }
+    }
+  });
+}
+
+// Chạy tự động cập nhật mỗi phút
+setInterval(autoUpdateLiveMinutes, 60000);
+</script>
 </body>
 </html>
